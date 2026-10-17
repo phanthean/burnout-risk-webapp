@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tra cứu nguy cơ Burnout</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B2D48; --navy-2: #24395A; --cream: #F3EDE6; --card: #FBF8F4; --line: #E4DCD2;
+    --ink: #1B2D48; --muted: #5B6676; --soft: #8A94A3;
+    --red: #C1292E; --orange: #E07B27; --yellow: #F4BE2C; --green: #74A84A; --blue: #1F74B7; --purple: #5D5BC4;
+    --low: #1F74B7; --mod: #F4BE2C; --high: #C1292E;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Be Vietnam Pro', Arial, sans-serif; background: var(--cream); color: var(--ink); line-height: 1.45; }
+  .mono { font-family: 'JetBrains Mono', Consolas, monospace; }
+
+  header { background: var(--navy); color: var(--cream); padding: 36px 24px 88px; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  .eyebrow { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+             background: var(--purple); padding: 4px 12px; border-radius: 6px; }
+  h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; margin: 14px 0 8px; }
+  header p { color: #C9D3E0; max-width: 720px; }
+
+  main { margin-top: -60px; padding: 0 24px 48px; }
+  .card { background: var(--card); border-radius: 18px; padding: 24px 28px; box-shadow: 0 6px 24px rgba(27,45,72,.08); }
+
+  /* Ô tìm kiếm */
+  .search form { display: flex; gap: 12px; flex-wrap: wrap; }
+  .search label { display: block; font-weight: 700; margin-bottom: 10px; }
+  .search input { flex: 1 1 220px; font: 600 22px 'JetBrains Mono', monospace; color: var(--ink); padding: 14px 18px;
+                  border: 2px solid var(--line); border-radius: 12px; background: #fff; }
+  .search input:focus { outline: none; border-color: var(--purple); }
+  .btn { font: 700 16px 'Be Vietnam Pro', Arial, sans-serif; border: 0; border-radius: 12px; padding: 14px 22px; cursor: pointer; }
+  .btn-primary { background: var(--navy); color: var(--cream); }
+  .btn-primary:hover { background: var(--navy-2); }
+  .quick { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+  .quick span { color: var(--muted); font-size: 14px; margin-right: 4px; }
+  .chip { font: 600 14px 'Be Vietnam Pro', Arial, sans-serif; border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+          padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+  .chip:hover { border-color: var(--navy); }
+  .chip i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .hint { color: var(--muted); font-size: 14px; margin-top: 12px; }
+  .error { color: var(--red); font-weight: 600; margin-top: 12px; }
+
+  /* Kết quả */
+  #result { display: none; margin-top: 22px; }
+  .grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .verdict { border-radius: 18px; padding: 26px 28px; color: #fff; position: relative; overflow: hidden; }
+  .verdict .who { font-size: 14px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: .85; }
+  .verdict .answer { font-size: clamp(30px, 4.2vw, 42px); font-weight: 800; line-height: 1.1; margin: 8px 0 6px; padding-right: 170px; }
+  .verdict .sub { padding-right: 170px; }
+  .verdict .sub { font-size: 17px; opacity: .92; }
+  .verdict.high { background: var(--red); }
+  .verdict.mod  { background: var(--orange); }
+  .verdict.low  { background: var(--blue); }
+  .verdict .pbig { position: absolute; right: 26px; top: 22px; text-align: right; }
+  .verdict .pbig b { display: block; font-size: 44px; font-weight: 800; line-height: 1; }
+  .verdict .pbig small { font-size: 13px; opacity: .85; }
+  @media (max-width: 560px) { .verdict .pbig { position: static; text-align: left; margin-top: 14px; } .verdict .answer, .verdict .sub { padding-right: 0; } }
+
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .tag { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.18); }
+
+  h2 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .cap { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+
+  /* Thước P(High) */
+  .gauge { position: relative; height: 34px; border-radius: 10px; overflow: visible; margin: 34px 0 40px;
+           background: linear-gradient(90deg, #DDE8F3 0 10%, #FBEBC4 10% 25%, #F6D3D4 25% 100%); }
+  .gauge .fill { position: absolute; left: 0; top: 13px; height: 8px; border-radius: 4px; background: var(--navy); transition: width .5s ease; }
+  .gauge .mark { position: absolute; top: -8px; bottom: -8px; width: 2px; background: var(--ink); }
+  .gauge .mark span { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .gauge .mark.low span { top: auto; bottom: -22px; }
+  .gauge .dot { position: absolute; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+                background: #fff; border: 4px solid var(--navy); transition: left .5s ease; }
+  .gauge .ticks { position: absolute; top: 46px; left: 0; right: 0; font-size: 12px; color: var(--soft); }
+  .gauge .ticks span { position: absolute; transform: translateX(-50%); }
+  .zones { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .zones i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+  .probs { display: grid; gap: 10px; margin-top: 18px; }
+  .prow { display: grid; grid-template-columns: 92px 1fr 64px; gap: 10px; align-items: center; font-size: 15px; }
+  .pbar { height: 14px; background: #EEE7DE; border-radius: 7px; overflow: hidden; }
+  .pbar div { height: 100%; border-radius: 7px; transition: width .5s ease; }
+  .prow b { text-align: right; font-family: 'JetBrains Mono', monospace; }
+
+  .truth { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  .truth > div { background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .truth small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+  .truth b { font-size: 18px; }
+  .ok { color: var(--green); } .bad { color: var(--red); }
+
+  .ctx { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 16px; font-size: 14px; color: var(--muted); }
+  .ctx b { color: var(--ink); font-weight: 600; }
+
+  /* Yếu tố đóng góp */
+  .factors { display: grid; gap: 4px; }
+  .frow { display: grid; grid-template-columns: 170px 1fr 120px; gap: 12px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .frow:last-child { border-bottom: 0; }
+  .fname { font-weight: 600; font-size: 15px; }
+  .fname small { display: block; color: var(--soft); font-weight: 500; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .fbar { position: relative; height: 22px; }
+  .fbar::before { content: ''; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1.5px; background: var(--ink); opacity: .35; }
+  .fbar div { position: absolute; top: 3px; height: 16px; border-radius: 4px; transition: all .5s ease; }
+  .fval { text-align: right; font-size: 14px; }
+  .fval b { font-family: 'JetBrains Mono', monospace; font-size: 15px; }
+  .fval small { display: block; color: var(--soft); font-size: 12px; }
+  .miss { color: var(--orange); font-weight: 700; }
+  .legend { display: grid; grid-template-columns: 170px 1fr 1fr 120px; gap: 0 12px; font-size: 13px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; }
+  .legend span:nth-child(2) { text-align: right; padding-right: 8px; } .legend span:nth-child(3) { padding-left: 8px; }
+  @media (max-width: 640px) {
+    .frow { grid-template-columns: 1fr 96px; }
+    .fbar { grid-column: 1 / -1; grid-row: 2; }
+    .legend { grid-template-columns: 1fr 1fr; } .legend span:first-child, .legend span:last-child { display: none; }
+  }
+
+  .note { margin-top: 22px; background: var(--navy); color: #C9D3E0; border-radius: 14px; padding: 16px 20px; font-size: 14px; }
+  .note b { color: var(--yellow); }
+  .recent { margin-top: 14px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); }
+  .recent button { font: 600 13px 'JetBrains Mono', monospace; border: 0; border-radius: 6px; padding: 4px 9px; cursor: pointer; color: #fff; }
+  footer { text-align: center; color: var(--soft); font-size: 13px; padding: 0 24px 32px; }
+  footer a { color: var(--muted); }
+  .loading { opacity: .5; pointer-events: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="eyebrow">Final Project · APM17</span>
+    <h1>Tra cứu nguy cơ burnout theo ID</h1>
+    <p>Nhập mã của một người trong bộ dữ liệu 50.000 người. Mô hình Logistic Regression trên 9 đặc trưng sẽ cho biết người đó có thuộc nhóm nguy cơ cao hay không, và vì sao.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="card search">
+      <form id="form">
+        <label for="pid" style="width:100%">Person_ID <span id="range" style="color:var(--muted);font-weight:500"></span></label>
+        <input id="pid" type="number" min="1" placeholder="Ví dụ: 1024" required>
+        <button class="btn btn-primary" type="submit">Dự đoán</button>
+      </form>
+      <div class="quick">
+        <span>Lấy ngẫu nhiên từ tập test:</span>
+        <button class="chip" data-label="">Bất kỳ</button>
+        <button class="chip" data-label="High"><i style="background:var(--high)"></i>Thực tế High</button>
+        <button class="chip" data-label="Moderate"><i style="background:var(--mod)"></i>Thực tế Moderate</button>
+        <button class="chip" data-label="Low"><i style="background:var(--low)"></i>Thực tế Low</button>
+      </div>
+      <p class="hint">Nên demo bằng người thuộc <b>tập test</b> (5.000 người mô hình chưa từng thấy khi học). Nhãn thực tế chỉ dùng để đối chiếu, mô hình không nhìn thấy nó.</p>
+      <div id="err" class="error"></div>
+      <div id="recent" class="recent"></div>
+    </section>
+
+    <section id="result">
+      <div class="grid">
+        <div>
+          <div id="verdict" class="verdict">
+            <div class="who" id="who"></div>
+            <div class="answer" id="answer"></div>
+            <div class="sub" id="sub"></div>
+            <div class="pbig"><b id="phigh"></b><small>xác suất High</small></div>
+            <div class="tags" id="tags"></div>
+          </div>
+
+          <div class="card" style="margin-top:22px">
+            <h2>Xác suất High so với ngưỡng cảnh báo</h2>
+            <p class="cap">Ngưỡng 0,25 được chọn trên tập valid để tìm ra ít nhất 90% người nguy cơ cao.</p>
+            <div class="gauge" id="gauge">
+              <div class="fill" id="gfill"></div>
+              <div class="mark low" style="left:10%"><span>0,10</span></div>
+              <div class="mark" style="left:25%"><span>Ngưỡng 0,25</span></div>
+              <div class="dot" id="gdot"></div>
+              <div class="ticks"><span style="left:0">0</span><span style="left:50%">0,5</span><span style="left:100%">1</span></div>
+            </div>
+            <div class="zones">
+              <span><i style="background:#DDE8F3"></i>Tầng Thấp &lt; 0,10</span>
+              <span><i style="background:#FBEBC4"></i>Trung bình 0,10–0,25</span>
+              <span><i style="background:#F6D3D4"></i>Cao ≥ 0,25 → cảnh báo</span>
+            </div>
+            <div class="probs" id="probs"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Đối chiếu</h2>
+          <div class="truth">
+            <div><small>Dự đoán</small><b id="tPred"></b></div>
+            <div><small>Nhãn thực tế</small><b id="tAct"></b></div>
+          </div>
+          <div class="ctx" id="ctx"></div>
+
+          <h2 style="margin-top:26px">Yếu tố đẩy người này về High</h2>
+          <p class="cap">Đóng góp vào log-odds High so với Low, so với một người ở mức trung bình. Hệ số lấy từ chính mô hình Logistic Regression.</p>
+          <div class="legend"><span></span><span>← kéo về Low</span><span>đẩy về High →</span><span></span></div>
+          <div class="factors" id="factors"></div>
+        </div>
+      </div>
+
+      <div class="note">
+        <b>Đọc kết quả thế nào?</b> Mô hình dự đoán từ điểm khảo sát tâm lý và thói quen, không phải chẩn đoán y khoa.
+        Dữ liệu là dữ liệu mô phỏng. Trên tập test, ngưỡng 0,25 tìm ra 89% người High (878/985), đổi lại khoảng 27% cảnh báo là nhầm (chủ yếu người Moderate).
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span id="minfo"></span> · <a href="/docs" target="_blank">API docs</a>
+</footer>
+
+<script>
+const COLORS = { Low: '#1F74B7', Moderate: '#F4BE2C', High: '#C1292E' };
+const VI = { Low: 'Thấp', Moderate: 'Trung bình', High: 'Cao' };
+const SPLIT = {
+  test:  'Tập test · mô hình chưa từng thấy',
+  valid: 'Tập valid · dùng để chọn ngưỡng',
+  train: 'Tập train · mô hình đã học người này',
+};
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 2) => v.toLocaleString('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d });
+const num = v => Number.isInteger(v) ? v.toLocaleString('vi-VN') : fmt(v, 1);
+const recent = [];
+
+async function getJSON(url) {
+  const r = await fetch(url);
+  const body = await r.json();
+  if (!r.ok) throw new Error(body.detail || 'Lỗi máy chủ');
+  return body;
+}
+
+async function lookup(id) {
+  $('err').textContent = '';
+  document.body.classList.add('loading');
+  try {
+    const d = await getJSON('/predict/' + id);
+    render(d);
+    history.replaceState(null, '', '?id=' + id);
+  } catch (e) {
+    $('err').textContent = e.message;
+    $('result').style.display = 'none';
+  } finally {
+    document.body.classList.remove('loading');
+  }
+}
+
+function render(d) {
+  $('pid').value = d.person_id;
+  const cls = d.prediction === 'High' ? 'high' : d.prediction === 'Moderate' ? 'mod' : 'low';
+  $('verdict').className = 'verdict ' + cls;
+  $('who').textContent = 'Person_ID ' + d.person_id;
+  $('answer').textContent = d.at_risk ? 'Có nguy cơ burnout cao' : 'Không thuộc nhóm nguy cơ cao';
+  $('sub').textContent = 'Mức dự đoán: ' + d.prediction + ' · Tầng ưu tiên: ' + d.tier;
+  $('phigh').textContent = fmt(d.p_high * 100, 1) + '%';
+  $('tags').innerHTML = `<span class="tag">${SPLIT[d.split]}</span>` +
+    (d.prediction !== d.prediction_argmax ? `<span class="tag">Không dùng ngưỡng sẽ là ${d.prediction_argmax}</span>` : '');
+
+  const p = Math.min(d.p_high, 1) * 100;
+  $('gfill').style.width = p + '%';
+  $('gdot').style.left = p + '%';
+  $('probs').innerHTML = ['Low', 'Moderate', 'High'].map(c => `
+    <div class="prow"><span>${c}</span>
+      <div class="pbar"><div style="width:${d.probabilities[c] * 100}%;background:${COLORS[c]}"></div></div>
+      <b>${fmt(d.probabilities[c] * 100, 1)}%</b></div>`).join('');
+
+  $('tPred').innerHTML = `<span style="color:${COLORS[d.prediction]}">●</span> ${d.prediction}`;
+  $('tAct').innerHTML = `<span style="color:${COLORS[d.actual]}">●</span> ${d.actual} ` +
+    (d.correct ? '<span class="ok">✓ khớp</span>' : '<span class="bad">✗ lệch</span>');
+  const c = d.context;
+  $('ctx').innerHTML = [['Tuổi', c.Age], ['Giới tính', c.Gender], ['Quốc gia', c.Country], ['Nghề', c.Occupation]]
+    .map(([k, v]) => `<span>${k}: <b>${v ?? 'không có'}</b></span>`).join('') +
+    '<span style="flex-basis:100%;font-size:12px">Các thông tin này chỉ để nhận diện, mô hình không dùng.</span>';
+
+  const maxAbs = Math.max(1, ...d.features.map(f => Math.abs(f.contribution)));
+  $('factors').innerHTML = d.features.map(f => {
+    const w = Math.abs(f.contribution) / maxAbs * 50;
+    const left = f.contribution >= 0 ? 50 : 50 - w;
+    const col = f.contribution >= 0 ? 'var(--red)' : 'var(--blue)';
+    const val = f.missing
+      ? `<span class="miss">trống</span> → ${num(f.used_value)}`
+      : `<b>${num(f.value)}</b> ${f.unit}`;
+    return `<div class="frow" title="z = ${f.z}, đóng góp = ${f.contribution}">
+      <div class="fname">${f.name}<small>${f.feature}</small></div>
+      <div class="fbar"><div style="left:${left}%;width:${Math.max(w, .6)}%;background:${col}"></div></div>
+      <div class="fval">${val}<small>trung vị ${num(f.median)}</small></div></div>`;
+  }).join('');
+
+  if (!recent.find(r => r.id === d.person_id)) {
+    recent.unshift({ id: d.person_id, label: d.prediction });
+    recent.splice(8);
+  }
+  $('recent').innerHTML = '<span>Vừa tra:</span>' + recent.map(r =>
+    `<button style="background:${COLORS[r.label]};color:${r.label === 'Moderate' ? '#1B2D48' : '#fff'}" data-id="${r.id}">${r.id}</button>`).join('');
+
+  $('result').style.display = 'block';
+  $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+$('form').addEventListener('submit', e => { e.preventDefault(); lookup($('pid').value); });
+document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', async () => {
+  const q = new URLSearchParams({ split: 'test' });
+  if (b.dataset.label) q.set('label', b.dataset.label);
+  try { lookup((await getJSON('/random-id?' + q)).person_id); } catch (e) { $('err').textContent = e.message; }
+}));
+$('recent').addEventListener('click', e => { if (e.target.dataset.id) lookup(e.target.dataset.id); });
+
+getJSON('/model-info').then(m => {
+  $('range').textContent = `(từ ${m.id_range[0]} đến ${m.id_range[1].toLocaleString('vi-VN')})`;
+  $('pid').max = m.id_range[1];
+  $('minfo').textContent = `${m.model} · C = ${m.C} · ${m.features.length} đặc trưng · ngưỡng P(High) ≥ ${fmt(m.threshold_high)}`;
+});
+const qid = new URLSearchParams(location.search).get('id');
+if (qid) lookup(qid);
+</script>
+</body>
+</html>
