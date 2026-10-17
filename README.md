@@ -7,7 +7,6 @@ Nhập **Person_ID** của một người trong bộ dữ liệu, web app sẽ t
 - **Đối chiếu** với nhãn thực tế, và cho biết người đó thuộc tập train, valid hay test.
 - **Yếu tố đẩy về High**: đóng góp của 9 đặc trưng, tính từ hệ số Logistic Regression.
 
-Khung dự án tham khảo repo [Recipe-Recommender](https://github.com/mhnguyetvu/Recipe-Recommender): backend FastAPI, một trang `static/index.html`, endpoint tra cứu theo ID và `main.py --mode train|serve|all`.
 
 ## Cấu trúc
 
